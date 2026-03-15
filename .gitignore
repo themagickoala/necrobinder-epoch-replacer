@@ -1,0 +1,21 @@
+# User-specific build configuration
+local.props
+
+# Build intermediates
+bin/
+obj/
+
+# Godot generated/imported files
+pack/.godot/
+pack/project.godot
+pack/mod_manifest.json
+*.import
+
+# IDE
+.vs/
+.idea/
+*.user
+
+# Reference images (not part of the mod source)
+necrobinder1_epoch.png
+necrobinder1_epoch_replaced.png

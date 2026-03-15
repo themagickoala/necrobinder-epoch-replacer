@@ -1,0 +1,112 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- Import user-specific paths -->
+	<Import Project="local.props" Condition="Exists('local.props')" />
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<PlatformTarget>x64</PlatformTarget>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!-- MOD METADATA -->
+		<ModName>EpochReplacer</ModName>
+		<ModDisplayName>Epoch Art Replacer</ModDisplayName>
+		<ModAuthor>themagickoala</ModAuthor>
+		<ModVersion>1.0.0</ModVersion>
+
+		<AssemblyName>$(ModName)</AssemblyName>
+		<Version>$(ModVersion)</Version>
+
+		<!-- Fallback defaults if local.props missing -->
+		<STS2GamePath Condition="'$(STS2GamePath)' == '' And '$([MSBuild]::IsOSPlatform(Windows))' == 'true'">C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2</STS2GamePath>
+		<STS2GamePath Condition="'$(STS2GamePath)' == '' And '$([MSBuild]::IsOSPlatform(Linux))' == 'true'">$(HOME)/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common/Slay the Spire 2</STS2GamePath>
+		<GodotExePath Condition="'$(GodotExePath)' == ''">godot</GodotExePath>
+
+		<!-- Platform-specific game data directory -->
+		<GameDataDirName Condition="'$([MSBuild]::IsOSPlatform(Linux))' == 'true'">data_sts2_linuxbsd_x86_64</GameDataDirName>
+		<GameDataDirName Condition="'$(GameDataDirName)' == ''">data_sts2_windows_x86_64</GameDataDirName>
+
+		<!-- Derived paths -->
+		<ModsOutputDir>$(STS2GamePath)/mods/$(ModName)</ModsOutputDir>
+		<GameDataDir>$(STS2GamePath)/$(GameDataDirName)</GameDataDir>
+		<PackProject>$(ProjectDir)pack</PackProject>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Reference Include="0Harmony">
+			<HintPath>$(GameDataDir)/0Harmony.dll</HintPath>
+		</Reference>
+		<Reference Include="GodotSharp">
+			<HintPath>$(GameDataDir)/GodotSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="sts2">
+			<HintPath>$(GameDataDir)/sts2.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<!-- Generate project.godot before build -->
+	<Target Name="GenerateProjectGodot" BeforeTargets="BeforeBuild">
+		<PropertyGroup>
+			<ProjectGodotPath>$(PackProject)/project.godot</ProjectGodotPath>
+			<ProjectGodotContent>config_version=5
+
+[application]
+config/name="$(ModName)"
+config/features=PackedStringArray("4.5", "Forward Plus")
+
+[dotnet]
+project/assembly_name="$(ModName)"
+</ProjectGodotContent>
+		</PropertyGroup>
+
+		<WriteLinesToFile File="$(ProjectGodotPath)" Lines="$(ProjectGodotContent)" Overwrite="true" Encoding="UTF-8" />
+		<Message Text="Generated project.godot" Importance="high" />
+	</Target>
+
+	<!-- Generate mod_manifest.json for Godot .pck (goes inside pack/) -->
+	<Target Name="GeneratePackManifest" BeforeTargets="BeforeBuild">
+		<PropertyGroup>
+			<PackManifestPath>$(PackProject)/mod_manifest.json</PackManifestPath>
+			<PackManifestContent>{
+  "pck_name": "$(ModName)",
+  "name": "$(ModDisplayName)",
+  "author": "$(ModAuthor)",
+  "version": "$(ModVersion)"
+}</PackManifestContent>
+		</PropertyGroup>
+
+		<WriteLinesToFile File="$(PackManifestPath)" Lines="$(PackManifestContent)" Overwrite="true" Encoding="UTF-8" />
+		<Message Text="Generated pack mod_manifest.json" Importance="high" />
+	</Target>
+
+	<!-- Generate the game's mod manifest (goes in mods output dir, read by ModManager) -->
+	<Target Name="GenerateGameManifest" AfterTargets="Build">
+		<PropertyGroup>
+			<GameManifestPath>$(ModsOutputDir)/mod_manifest.json</GameManifestPath>
+			<GameManifestContent>{
+  "id": "$(ModName)",
+  "name": "$(ModDisplayName)",
+  "author": "$(ModAuthor)",
+  "version": "$(ModVersion)",
+  "description": "Replaces epoch art on the timeline",
+  "has_dll": true,
+  "has_pck": true,
+  "affects_gameplay": false
+}</GameManifestContent>
+		</PropertyGroup>
+
+		<WriteLinesToFile File="$(GameManifestPath)" Lines="$(GameManifestContent)" Overwrite="true" Encoding="UTF-8" />
+		<Message Text="Generated game mod_manifest.json" Importance="high" />
+	</Target>
+
+	<Target Name="PostBuild" AfterTargets="Build">
+		<MakeDir Directories="$(ModsOutputDir)" />
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsOutputDir)" />
+		<!-- Windows export -->
+		<Exec Command="&quot;$(GodotExePath)&quot; --headless --path &quot;$(PackProject)&quot; --export-pack &quot;Windows Desktop&quot; &quot;$(ModsOutputDir)/$(ModName).pck&quot;"
+			  Condition="'$([MSBuild]::IsOSPlatform(Windows))' == 'true'" />
+		<!-- Linux export -->
+		<Exec Command="&quot;$(GodotExePath)&quot; --headless --path &quot;$(PackProject)&quot; --export-pack &quot;Linux&quot; &quot;$(ModsOutputDir)/$(ModName).pck&quot;"
+			  Condition="'$([MSBuild]::IsOSPlatform(Linux))' == 'true'" />
+	</Target>
+</Project>
