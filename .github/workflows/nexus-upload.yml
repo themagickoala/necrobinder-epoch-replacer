@@ -1,0 +1,20 @@
+name: Upload to Nexus Mods
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload to Nexus Mods
+        uses: Nexus-Mods/upload-action@v1
+        with:
+          api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+          file_group_id: 7189891
+          filename: EpochReplacer.zip
+          version: ${{ github.event.release.tag_name }}
+          file_category: main
