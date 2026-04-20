@@ -2,7 +2,7 @@
   "id": "EpochReplacer",
   "name": "Epoch Art Replacer",
   "author": "themagickoala",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Replaces epoch art on the timeline",
   "has_dll": true,
   "has_pck": true,

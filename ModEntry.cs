@@ -108,7 +108,7 @@ static class NEpochCardInitPatch
 [HarmonyPatch(typeof(NEpochInspectScreen), "Open")]
 static class NEpochInspectScreenOpenPatch
 {
-    static void Postfix(NEpochInspectScreen __instance, EpochModel epoch)
+    static void Postfix(NEpochInspectScreen __instance, NEpochSlot slot, EpochModel epoch, bool wasRevealed)
     {
         if (epoch.Id != "NECROBINDER1_EPOCH") return;
         if (ModEntry.ReplacementTexture == null) return;
