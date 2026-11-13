@@ -89,19 +89,9 @@ static class NEpochSlotSetStatePatch
     }
 }
 
-// NEpochCard._Ready() only initialises _mask; the portrait texture is set in Init().
-[HarmonyPatch(typeof(NEpochCard), nameof(NEpochCard.Init))]
-static class NEpochCardInitPatch
-{
-    static void Postfix(NEpochCard __instance, EpochModel epochModel)
-    {
-        if (epochModel.Id != "NECROBINDER1_EPOCH") return;
-        if (ModEntry.ReplacementTexture == null) return;
-
-        var portrait = __instance.GetNodeOrNull<TextureRect>("%Portrait");
-        if (portrait != null) portrait.Texture = ModEntry.ReplacementTexture;
-    }
-}
+// NEpochCard was removed in v0.113.0. Its replacement, the "epoch gained" popup NGainEpochVfx,
+// is deliberately NOT patched: a Harmony postfix on NGainEpochVfx._Ready hung the game at launch.
+// The popup keeps the original art; the timeline slots and the inspect screen are patched below.
 
 // _portrait.Texture is assigned at the start of Open() before the first await,
 // so the postfix fires after it's already set.

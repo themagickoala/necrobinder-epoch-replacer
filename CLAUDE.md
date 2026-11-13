@@ -47,7 +47,7 @@ The mod uses Harmony postfix patches to replace textures at the exact moment eac
 
 Patches hook the methods that assign `_portrait.Texture` / `_blurPortrait.Texture`:
 - `NEpochSlot.SetState()` — covers all three slot states; `%Portrait` for Complete/Obtained, `%BlurPortrait` for NotObtained (which uses a SubViewport blur effect on `%Portrait`)
-- `NEpochCard.Init()` — `_Ready()` does not set the portrait; Init does
+- `NEpochCard` was removed in game v0.113.0. Its replacement, the "epoch gained" popup `NGainEpochVfx`, is intentionally not patched: a postfix on `NGainEpochVfx._Ready` hung the game at launch (found by bisecting; root cause not determined)
 - `NEpochInspectScreen.Open()` — texture is assigned before the first `await`, so the postfix fires after it's set
 - `NEpochInspectScreen.OpenViaPaginator()` — private method called when paging between epochs while the screen is open
 
